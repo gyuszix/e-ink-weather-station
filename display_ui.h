@@ -42,12 +42,12 @@ void drawLayout(WeatherData &data) {
   display.setTextSize(1);
 
   display.setTextColor(GxEPD_BLACK);
-  display.setFont(&FreeSans9pt7b);
-  display.setCursor(80, 11);
-  display.print("o");
   display.setFont(&FreeSans12pt7b);
-  display.setCursor(68, 30);
+  display.setCursor(69, 30);
   display.print("C");
+  display.setFont(&FreeSans9pt7b);
+  display.setCursor(62, 15);
+  display.print("o");
 
   display.drawLine(vDiv1, 0, vDiv1, rowDivider, GxEPD_BLACK);
   display.drawBitmap(101, 2, getBitmap(data.iconCode), 50, 50, GxEPD_BLACK);
@@ -60,7 +60,7 @@ void drawLayout(WeatherData &data) {
   display.print("HIGH:");
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
-  display.setCursor(224, 24);
+  display.setCursor(230, 24);
   display.print((int)data.tempHigh);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
@@ -75,7 +75,7 @@ void drawLayout(WeatherData &data) {
   display.print("LOW: ");
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
-  display.setCursor(224, 45);
+  display.setCursor(230, 45);
   display.print((int)data.tempLow);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
@@ -145,9 +145,15 @@ void drawLayout(WeatherData &data) {
   display.setFont(&FreeSans9pt7b);
   display.setTextColor(GxEPD_BLACK);
   display.setCursor(3, 122);
-  display.print("OWM");
-  display.setCursor(50, 122);
-  display.print("BME280");
+  display.print("IN:");
+  display.setTextColor(GxEPD_RED);
+  display.print((int)data.tempIndoor);
+  display.setTextColor(GxEPD_BLACK);
+  display.print("C ");
+  display.setTextColor(GxEPD_RED);
+  display.print((int)data.humidityIndoor);
+  display.setTextColor(GxEPD_BLACK);
+  display.print("%");
   display.setCursor(162, 122);
   display.print("SYNC ");
   display.print(data.syncTime);

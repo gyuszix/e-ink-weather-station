@@ -13,6 +13,8 @@ struct WeatherData {
   char  windDir[4];
   char  iconCode[4];
   char  syncTime[6];
+  float tempIndoor;
+  float humidityIndoor;
 };
 
 #endif

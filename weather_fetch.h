@@ -14,6 +14,10 @@ void fetchWeatherData(WeatherData &data) {
   data.uvIndex       = 6;
   data.uvMax         = 11;
   data.windKph       = 19;
+
+  data.tempIndoor    = 21;
+  data.humidityIndoor= 58;
+
   strncpy(data.windDir,  "SW",    sizeof(data.windDir));
   strncpy(data.iconCode, "09n",   sizeof(data.iconCode));
   strncpy(data.syncTime, "14:30", sizeof(data.syncTime));
