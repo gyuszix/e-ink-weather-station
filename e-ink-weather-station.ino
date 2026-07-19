@@ -1,3 +1,5 @@
+#include <Adafruit_BME280.h>
+
 #include "weather_data.h"
 #include "weather_fetch.h"
 #include "display_ui.h"
