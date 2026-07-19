@@ -140,6 +140,7 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.print("kt ");
+  display.setTextColor(GxEPD_RED);
   display.print(data.windDir);
 
   display.drawLine(0, statusDivider, W, statusDivider, GxEPD_BLACK);
@@ -155,7 +156,7 @@ void drawLayout(WeatherData &data) {
   display.print((int)data.humidityIndoor);
   display.setTextColor(GxEPD_BLACK);
   display.print("%");
-  display.setCursor(148, 122);
+  display.setCursor(145, 122);
   display.print("SYNCED @ ");
   display.setTextColor(GxEPD_RED);
   display.print(data.syncTime);
