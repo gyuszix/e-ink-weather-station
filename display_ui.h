@@ -134,12 +134,13 @@ void drawLayout(WeatherData &data) {
   display.setCursor(c4 + 3, labelY);
   display.print("WIND");
   display.setFont(&FreeSansBold12pt7b);
-  display.setCursor(c4 + 10, valueY);
+  display.setCursor(c4 + 3, valueY);
   display.setTextColor(GxEPD_RED);
-  display.print((int)data.windKph);
+  display.print((int)data.windkt);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
-  display.print("kph");
+  display.print("kt ");
+  display.print(data.windDir);
 
   display.drawLine(0, statusDivider, W, statusDivider, GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
@@ -154,8 +155,9 @@ void drawLayout(WeatherData &data) {
   display.print((int)data.humidityIndoor);
   display.setTextColor(GxEPD_BLACK);
   display.print("%");
-  display.setCursor(162, 122);
-  display.print("SYNC ");
+  display.setCursor(148, 122);
+  display.print("SYNCED @ ");
+  display.setTextColor(GxEPD_RED);
   display.print(data.syncTime);
 }
 

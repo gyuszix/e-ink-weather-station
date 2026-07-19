@@ -9,12 +9,13 @@ struct WeatherData {
   int   precipPercent;
   int   uvIndex;
   int   uvMax;
-  float windKph;
+  float windkt;
   char  windDir[4];
   char  iconCode[4];
   char  syncTime[6];
   float tempIndoor;
   float humidityIndoor;
+  long  timezoneOffset;
 };
 
 #endif
