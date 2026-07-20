@@ -54,7 +54,7 @@ void parseOWM(String &json, WeatherData &data) {
   Serial.print("OWM response length: ");
   Serial.println(json.length());
 
-  StaticJsonDocument<4096> doc;
+  StaticJsonDocument<8192> doc;
   DeserializationError error = deserializeJson(doc, json);
   if (error) {
     Serial.print("OWM parse error: ");
@@ -68,31 +68,38 @@ void parseOWM(String &json, WeatherData &data) {
   float totalRain =  0;
   float maxPop    =  0;
 
-  // today's local date in days since epoch
   long dt0   = doc["list"][0]["dt"].as<long>() + data.timezoneOffset;
   long today = dt0 / 86400L;
 
-  for (int i = 0; i < 8; i++) {
+  // first pass — today's slots only
+  for (int i = 0; i < 16; i++) {
     JsonObject entry = doc["list"][i];
-
-    // convert slot to local date
     long slotDt  = entry["dt"].as<long>() + data.timezoneOffset;
     long slotDay = slotDt / 86400L;
-
-    // skip if not today in local time
     if (slotDay != today) continue;
 
     float tmax = entry["main"]["temp_max"];
     float tmin = entry["main"]["temp_min"];
     if (tmax > maxTemp) maxTemp = tmax;
     if (tmin < minTemp) minTemp = tmin;
-
-    if (entry.containsKey("rain")) {
-      totalRain += entry["rain"]["3h"].as<float>();
-    }
-
+    if (entry.containsKey("rain")) totalRain += entry["rain"]["3h"].as<float>();
     float pop = entry["pop"].as<float>();
     if (pop > maxPop) maxPop = pop;
+  }
+
+  // fallback — no today slots found, use first 8 slots (tomorrow)
+  if (maxTemp == -100) {
+    Serial.println("No today slots found, falling back to next available slots");
+    for (int i = 0; i < 8; i++) {
+      JsonObject entry = doc["list"][i];
+      float tmax = entry["main"]["temp_max"];
+      float tmin = entry["main"]["temp_min"];
+      if (tmax > maxTemp) maxTemp = tmax;
+      if (tmin < minTemp) minTemp = tmin;
+      if (entry.containsKey("rain")) totalRain += entry["rain"]["3h"].as<float>();
+      float pop = entry["pop"].as<float>();
+      if (pop > maxPop) maxPop = pop;
+    }
   }
 
   data.tempHigh      = maxTemp;

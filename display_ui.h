@@ -53,7 +53,6 @@ void drawLayout(WeatherData &data) {
   display.drawBitmap(101, 2, getBitmap(data.iconCode), 50, 50, GxEPD_BLACK);
   display.drawLine(vDiv2, 0, vDiv2, rowDivider, GxEPD_BLACK);
 
-  // hi/lo — label at fixed x, value at fixed x so they line up
   display.setFont(&FreeSans12pt7b);
   display.setTextColor(GxEPD_BLACK);
   display.setCursor(162, 24);
@@ -64,7 +63,7 @@ void drawLayout(WeatherData &data) {
   display.print((int)data.tempHigh);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
-  display.setCursor(display.getCursorX(), 16);   // superscript
+  display.setCursor(display.getCursorX(), 16);
   display.print("o");
   display.setCursor(display.getCursorX(), 24);
   display.print("C");
@@ -79,7 +78,7 @@ void drawLayout(WeatherData &data) {
   display.print((int)data.tempLow);
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
-  display.setCursor(display.getCursorX(), 37);   // superscript
+  display.setCursor(display.getCursorX(), 37);
   display.print("o");
   display.setCursor(display.getCursorX(), 45);
   display.print("C");

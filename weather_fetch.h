@@ -47,7 +47,11 @@ void fetchWeatherData(WeatherData &data) {
   owmPath += LONGITUDE;
   owmPath += "&appid=";
   owmPath += OWM_API_KEY;
+  //arduino has limited memory so the best is cnt=8 meaning 8 * 3 hours ahead
+  //esp32 has no memory limitations so cnt = 16 is better 
   owmPath += "&units=metric&cnt=8";
+  //owmPath += "&units=metric&cnt=16";
+  
 
   String owmResponse = httpGet("api.openweathermap.org", owmPath);
   if (owmResponse.length() > 0) {
