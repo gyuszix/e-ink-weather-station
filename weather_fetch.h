@@ -54,8 +54,7 @@ void fetchOWM(WeatherData &data) {
   Serial.print("OWM response length: ");
   Serial.println(client.contentLength());
 
-JsonDocument doc;
-
+  JsonDocument doc;
 
   DeserializationError error = deserializeJson(doc, client);
   if (error) {
@@ -101,6 +100,12 @@ void fetchWeatherData(WeatherData &data) {
 
   // ---- BME280 indoor ----
   if (!bmeReady) {
+#if defined(ARDUINO_ARCH_ESP32)
+    pinMode(5, INPUT_PULLUP);   // SDA
+    pinMode(6, INPUT_PULLUP);   // SCL
+    Wire.begin(5, 6);
+    Wire.setClock(100000);
+#endif
     bmeReady = bme.begin(0x76);
     if (!bmeReady) Serial.println("BME280 not found");
   }
