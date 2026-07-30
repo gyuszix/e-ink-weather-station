@@ -95,6 +95,8 @@ easiest path and it will be plugged into the wall, the UNO R4 is more forgiving.
 <img width="1170" height="1286" alt="IMG_1956" src="https://github.com/user-attachments/assets/6b53be2c-926c-42f7-98b8-63d8a29c58f5" />
 <img width="1170" height="1005" alt="IMG_1957" src="https://github.com/user-attachments/assets/239c389a-6a38-482f-9513-d1b20d11b131" />
 <img width="1934" height="1356" alt="Screenshot 2026-07-30 at 18 20 31" src="https://github.com/user-attachments/assets/961ab921-9b94-4fea-8dfe-c8e11fffe1dc" />
+<img width="979" height="396" alt="Pasted image 20260707141931" src="https://github.com/user-attachments/assets/009787e5-e559-4dfa-bff7-1f1422306b36" />
+
 
 
 ## Pinouts
