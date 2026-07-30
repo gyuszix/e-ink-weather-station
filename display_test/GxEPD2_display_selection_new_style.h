@@ -1,3 +1,34 @@
+// ============================================================================
+//
+//   THIS PROJECT USES TWO BOARDS. Only two branches below matter:
+//
+//   +------------------------------------------------------------------+
+//   |                                                                  |
+//   |   BOARD 1: Arduino UNO R4 WiFi                                   |
+//   |   -> section:  #if defined(ARDUINO_ARCH_RENESAS)                 |
+//   |      CS=SS(10)  DC=8  RST=9  BUSY=7                              |
+//   |                                                                  |
+//   |   BOARD 2: ESP32-S3 Super Mini                                   |
+//   |   -> section:  #elif defined(ARDUINO_ESP32S3_DEV)                |
+//   |      CS=10  DC=9  RST=8  BUSY=7                                  |
+//   |      (MOSI=GP11, SCK=GP12 are fixed HW SPI, not set here)        |
+//   |                                                                  |
+//   +------------------------------------------------------------------+
+//
+//   Driver panel:  GxEPD2_290_C90c  (GDEM029C90 128x296, SSD1680, 3-color)
+//   Display class: GxEPD2_3C
+//
+//   Everything else in this file is stock GxEPD2 boilerplate for boards
+//   we don't use. Leave it - it keeps the file in sync with the library
+//   example and none of it compiles unless its board is selected.
+//
+// ============================================================================
+
+
+
+
+
+
 // Display Library example for SPI e-paper panels from Dalian Good Display and boards from Waveshare.
 // Requires HW SPI and Adafruit_GFX. Caution: the e-paper panels require 3.3V supply AND data lines!
 //
