@@ -23,6 +23,11 @@ void connectWiFi() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
+    // Wait for a real IP
+    while (WiFi.localIP() == IPAddress(0, 0, 0, 0)) {
+      delay(500);
+      Serial.print(".");
+    }
     Serial.println(" connected.");
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());

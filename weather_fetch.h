@@ -25,6 +25,50 @@ String httpGet(const char* host, String path) {
   return response;
 }
 
+void fetchOWM(WeatherData &data) {
+  WiFiClient wifi;
+  HttpClient client = HttpClient(wifi, "api.openweathermap.org", 80);
+
+  String owmPath = "/data/2.5/forecast?lat=";
+  owmPath += LATITUDE;
+  owmPath += "&lon=";
+  owmPath += LONGITUDE;
+  owmPath += "&appid=";
+  owmPath += OWM_API_KEY;
+
+#if defined(ARDUINO_ARCH_ESP32)
+  owmPath += "&units=metric&cnt=16";
+#else
+  owmPath += "&units=metric&cnt=8";
+#endif
+
+  client.get(owmPath);
+  int statusCode = client.responseStatusCode();
+  if (statusCode != 200) {
+    Serial.print("OWM HTTP error: ");
+    Serial.println(statusCode);
+    client.stop();
+    return;
+  }
+
+  Serial.print("OWM response length: ");
+  Serial.println(client.contentLength());
+
+JsonDocument doc;
+
+
+  DeserializationError error = deserializeJson(doc, client);
+  if (error) {
+    Serial.print("OWM parse error: ");
+    Serial.println(error.c_str());
+    client.stop();
+    return;
+  }
+
+  parseOWM(doc, data);
+  client.stop();
+}
+
 void fetchWeatherData(WeatherData &data) {
   // ---- OWM current weather ----
   String currentPath = "/data/2.5/weather?lat=";
@@ -40,23 +84,8 @@ void fetchWeatherData(WeatherData &data) {
     parseCurrent(currentResponse, data);
   }
 
-  // ---- OWM forecast ----
-  String owmPath = "/data/2.5/forecast?lat=";
-  owmPath += LATITUDE;
-  owmPath += "&lon=";
-  owmPath += LONGITUDE;
-  owmPath += "&appid=";
-  owmPath += OWM_API_KEY;
-  //arduino has limited memory so the best is cnt=8 meaning 8 * 3 hours ahead
-  //esp32 has no memory limitations so cnt = 16 is better 
-  owmPath += "&units=metric&cnt=8";
-  //owmPath += "&units=metric&cnt=16";
-  
-
-  String owmResponse = httpGet("api.openweathermap.org", owmPath);
-  if (owmResponse.length() > 0) {
-    parseOWM(owmResponse, data);
-  }
+  // ---- OWM forecast (stream parsed) ----
+  fetchOWM(data);
 
   // ---- Open-Meteo UV ----
   String uvPath = "/v1/forecast?latitude=";

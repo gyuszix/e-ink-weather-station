@@ -17,21 +17,20 @@ void setup() {
   display.hibernate();
 }
 
-// ---- Uno R4 WiFi loop ----
 void loop() {
+
+#if defined(ARDUINO_ARCH_ESP32)
+  fetchWeatherData(weather);
+  drawWeatherScreen(weather);
+  display.hibernate();
+  esp_sleep_enable_timer_wakeup(30UL * 60UL * 1000000ULL);
+  esp_deep_sleep_start();
+#else
   delay(30UL * 60UL * 1000UL);
   connectWiFi();
   delay(2000);
   fetchWeatherData(weather);
   drawWeatherScreen(weather);
   display.hibernate();
+#endif
 }
-
-// ---- ESP32 loop  ----
-// void loop() {
-//   fetchWeatherData(weather);
-//   drawWeatherScreen(weather);
-//   display.hibernate();
-//   esp_sleep_enable_timer_wakeup(30UL * 60UL * 1000000ULL);
-//   esp_deep_sleep_start();
-// }

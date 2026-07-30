@@ -20,7 +20,7 @@ void parseCurrent(String &json, WeatherData &data) {
   Serial.print("Current response length: ");
   Serial.println(json.length());
 
-  StaticJsonDocument<1024> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, json);
   if (error) {
     Serial.print("Current parse error: ");
@@ -50,17 +50,8 @@ void parseCurrent(String &json, WeatherData &data) {
   Serial.print("timezoneOffset: "); Serial.println(data.timezoneOffset);
 }
 
-void parseOWM(String &json, WeatherData &data) {
-  Serial.print("OWM response length: ");
-  Serial.println(json.length());
-
-  StaticJsonDocument<8192> doc;
-  DeserializationError error = deserializeJson(doc, json);
-  if (error) {
-    Serial.print("OWM parse error: ");
-    Serial.println(error.c_str());
-    return;
-  }
+// accepts already-parsed doc from fetchOWM (stream parsed, no String buffer)
+void parseOWM(JsonDocument &doc, WeatherData &data) {
   Serial.println("OWM parse OK");
 
   float maxTemp   = -100;
@@ -71,8 +62,14 @@ void parseOWM(String &json, WeatherData &data) {
   long dt0   = doc["list"][0]["dt"].as<long>() + data.timezoneOffset;
   long today = dt0 / 86400L;
 
+#if defined(ARDUINO_ARCH_ESP32)
+  int maxSlots = 16;
+#else
+  int maxSlots = 8;
+#endif
+
   // first pass — today's slots only
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < maxSlots; i++) {
     JsonObject entry = doc["list"][i];
     long slotDt  = entry["dt"].as<long>() + data.timezoneOffset;
     long slotDay = slotDt / 86400L;
@@ -87,10 +84,10 @@ void parseOWM(String &json, WeatherData &data) {
     if (pop > maxPop) maxPop = pop;
   }
 
-  // fallback — no today slots found, use first 8 slots (tomorrow)
+  // fallback — no today slots found, use first available slots
   if (maxTemp == -100) {
     Serial.println("No today slots found, falling back to next available slots");
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < maxSlots; i++) {
       JsonObject entry = doc["list"][i];
       float tmax = entry["main"]["temp_max"];
       float tmin = entry["main"]["temp_min"];
