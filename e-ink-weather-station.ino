@@ -7,7 +7,7 @@ WeatherData weather;
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(3000);
   display.init(115200, true, 50, false);
   display.setRotation(1);
   connectWiFi();
