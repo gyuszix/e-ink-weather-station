@@ -33,6 +33,8 @@ where most of the real lessons live.
         +--------------------------------------------------+
                  (2.9" e-paper, black / white / red)
 ```
+<img width="3109" height="1407" alt="IMG_2030" src="https://github.com/user-attachments/assets/860566c1-9a8d-43ab-9e1c-72c9410c6829" />
+
 
 On each wake cycle the device:
 
