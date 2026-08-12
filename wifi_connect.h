@@ -23,14 +23,20 @@ void connectWiFi() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    // Wait for a real IP
-    while (WiFi.localIP() == IPAddress(0, 0, 0, 0)) {
+    // Wait for a real IP, bounded so a stuck DHCP negotiation can't block sleep forever
+    int ipAttempts = 0;
+    while (WiFi.localIP() == IPAddress(0, 0, 0, 0) && ipAttempts < 20) {
       delay(500);
       Serial.print(".");
+      ipAttempts++;
     }
-    Serial.println(" connected.");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
+    if (WiFi.localIP() != IPAddress(0, 0, 0, 0)) {
+      Serial.println(" connected.");
+      Serial.print("IP: ");
+      Serial.println(WiFi.localIP());
+    } else {
+      Serial.println(" no IP assigned.");
+    }
   } else {
     Serial.println(" failed.");
   }

@@ -16,6 +16,8 @@ struct WeatherData {
   float tempIndoor;
   float humidityIndoor;
   long  timezoneOffset;
+  float batteryVoltage;
+  int   batteryPercent;
 };
 
 #endif
