@@ -9,6 +9,7 @@
 #include "GxEPD2_display_selection_new_style.h"
 #include "bitmaps.h"
 #include "weather_data.h"
+#include "battery.h"
 
 const unsigned char* getBitmap(const char* icon) {
   if (strcmp(icon, "01d") == 0 || strcmp(icon, "01n") == 0) return icon_01d;
@@ -144,19 +145,28 @@ void drawLayout(WeatherData &data) {
 
   display.drawLine(0, statusDivider, W, statusDivider, GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
-  display.setTextColor(GxEPD_BLACK);
   display.setCursor(3, 122);
+
+  display.setTextColor(GxEPD_BLACK);
   display.print("IN:");
   display.setTextColor(GxEPD_RED);
   display.print((int)data.tempIndoor);
   display.setTextColor(GxEPD_BLACK);
   display.print("C ");
+
+  display.print("Hu:");
   display.setTextColor(GxEPD_RED);
   display.print((int)data.humidityIndoor);
   display.setTextColor(GxEPD_BLACK);
-  display.print("%");
-  display.setCursor(145, 122);
-  display.print("SYNCED @ ");
+  display.print("% ");
+
+  display.print("BA:");
+  display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_RED);
+  display.print(data.batteryPercent);
+  display.setTextColor(GxEPD_BLACK);
+  display.print("% ");
+
+  display.print("Syn:");
   display.setTextColor(GxEPD_RED);
   display.print(data.syncTime);
 }

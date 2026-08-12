@@ -1,6 +1,7 @@
 #include "wifi_connect.h"
 #include "weather_data.h"
 #include "weather_fetch.h"
+#include "battery.h"
 #include "display_ui.h"
 
 WeatherData weather;
@@ -9,6 +10,7 @@ void runCycle() {
   display.init(115200, true, 50, false);
   display.setRotation(1);
   connectWiFi();
+  readBattery(weather);
   delay(2000);
   fetchWeatherData(weather);
   display.init(115200, true, 50, false);   // re-init after WiFi so SPI is clean
