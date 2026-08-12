@@ -1,13 +1,15 @@
 # E-Ink Weather Station
 
+**Version 0.2** — battery powered, deep sleep optimised.
+
 A low-power weather station built around a 2.9 inch three-colour e-paper display.
 It pulls current conditions, a daily forecast, and a UV index from free weather
 APIs over WiFi, reads indoor temperature and humidity from a local sensor, draws
 everything to the e-paper panel, then goes to sleep and repeats every 30 minutes.
 
-The whole thing is designed to be plugged into power (or a battery), left on a
-shelf, and forgotten about. The e-paper holds its image with zero power, so
-between updates the device draws almost nothing.
+The whole thing is designed to be plugged into power (or, as of v0.2, run
+entirely off a battery), left on a shelf, and forgotten about. The e-paper holds
+its image with zero power, so between updates the device draws almost nothing.
 
 This README is written first as a record of what I built and the decisions and
 dead-ends along the way, and second as a guide for anyone who wants to build the
@@ -16,6 +18,15 @@ where most of the real lessons live.
 
 ---
 
+## Version history
+
+- **v0.2** — Battery power. Added a LiPo cell, USB-C TP4056 charger module, and
+  a voltage divider for battery percentage monitoring. Status bar now reports
+  battery level alongside indoor temp/humidity and sync time.
+- **v0.1** — Initial build. USB-powered, two supported boards (UNO R4 WiFi /
+  ESP32-S3 Super Mini), WiFi + weather APIs + BME280 + e-paper display.
+
+---
 
 ## What it does
 
@@ -28,7 +39,7 @@ where most of the real lessons live.
         |   WIND  4 kt NE        RAIN 0.4mm / 25%          |
         |   UV    2              SYNC 13:40                 |
         |                                                  |
-        |   INSIDE   22.4 C   /   48% RH                   |
+        |   TEMP 22.4 C  HUM 48%  BAT 86%  SYNC 13:40      |
         |                                                  |
         +--------------------------------------------------+
                  (2.9" e-paper, black / white / red)
@@ -43,8 +54,9 @@ On each wake cycle the device:
 3. Fetches a short forecast (today's high/low, rain, precipitation chance).
 4. Fetches the daily UV index max from Open-Meteo.
 5. Reads indoor temperature and humidity from a BME280 sensor.
-6. Draws it all to the e-paper display.
-7. Sleeps for 30 minutes, then does it again.
+6. Reads battery voltage and converts it to a percentage (ESP32-S3 only).
+7. Draws it all to the e-paper display.
+8. Sleeps for 30 minutes, then does it again.
 
 ---
 
@@ -59,6 +71,7 @@ it is compiled for and adapts. Pick whichever you have.
 | I2C pull-ups | built in on hardware I2C pins | must be enabled in code |
 | Power use between updates | higher (stays powered) | very low (deep sleep) |
 | Battery friendly | not really | yes |
+| Battery monitoring | not implemented | yes, via voltage divider (v0.2) |
 | Ease of bring-up | smoother | fiddlier (see troubleshooting) |
 
 If you care about running on a battery, use the ESP32-S3. If you just want the
@@ -76,11 +89,16 @@ easiest path and it will be plugged into the wall, the UNO R4 is more forgiving.
 - **Jumper wires** (Dupont) for breadboarding
 - **USB-C cable**
 
-**Stage 2 (battery) - added later:**
+**Stage 2 (battery) - added in v0.2:**
 
-- **3.7V LiPo cell** (e.g. 800mAh) with a connector matching your board
-- Depending on the board variant, a LiPo charging/protection module (the
-  ESP32-S3 Super Mini has onboard charging; check your specific board)
+- **3.7V LiPo cell** (e.g. 800mAh, JST-PH 2.0mm connector), ideally with a
+  built-in protection circuit
+- **TP4056 USB-C charging module** with protection (DW01A + FS8205A) — this
+  handles charging and passes battery power through to the board
+- **Two resistors of equal value** (100kΩ recommended) for a voltage divider,
+  used to safely scale battery voltage down for reading on an ADC pin
+- **Breadboard + jumper wires**, for prototyping the divider before soldering
+  it permanently
 
 **Stage 3 (permanent build) - added later:**
 
@@ -184,14 +202,14 @@ E-paper display:
 
 | Display | ESP32-S3 pin |
 |---------|-------------|
-| VCC     | 3.3V        |
-| GND     | GND         |
+| BUSY    | GP7         |
+| RST     | GP8         |
+| DC      | GP9         |
+| CS      | GP10        |
 | MOSI    | GP11        |
 | SCK     | GP12        |
-| CS      | GP10        |
-| DC      | GP9         |
-| RST     | GP8         |
-| BUSY    | GP7         |
+| GND     | GND         |
+| VCC     | 3.3V        |
 
 BME280 sensor:
 
@@ -199,14 +217,45 @@ BME280 sensor:
 |--------|-------------|
 | VCC    | 3.3V        |
 | GND    | GND         |
-| SDA    | GP5         |
 | SCL    | GP6         |
+| SDA    | GP5         |
 | CSB    | 3.3V (forces I2C mode) |
 | SDO    | GND (sets I2C address 0x76) |
 
 Two details that apply to both sensors regardless of board: **CSB must be tied
 to 3.3V** or the BME280 goes into SPI mode and will not answer on I2C, and
 **SDO to GND** sets the I2C address to 0x76, which is what the code expects.
+
+### Battery wiring (ESP32-S3 only, v0.2)
+
+The battery does not connect to the S3 directly — it goes through the TP4056
+charging module first, which also handles USB-C charging input.
+
+```
+Battery(+) ---- B+  [TP4056]  OUT+ ---- ESP32-S3 5V
+Battery(-) ---- B-             OUT- ---- ESP32-S3 GND
+```
+
+For battery percentage monitoring, a voltage divider taps off the same battery
+line and feeds a scaled-down reading into a free ADC pin:
+
+```
+Battery(+) ----[R1: 100k]----+----[R2: 100k]---- GND
+                              |
+                          ESP32-S3 GP4 (ADC)
+```
+
+Both resistors are equal value, so the ADC pin sees exactly half the battery
+voltage. The firmware multiplies the reading back up by 2 to get the real
+battery voltage, then converts that to an approximate percentage. GP4 was
+chosen because it doesn't conflict with the display SPI pins (GP7-GP12) or the
+BME280 I2C pins (GP5/GP6), and it sits on ADC1, which is unaffected by WiFi
+being active (ADC2 pins share hardware with the radio and can behave
+unreliably while WiFi is on).
+
+The divider draws a small continuous current from the battery whenever it's
+connected (roughly 0.02mA at 100k/100k, negligible against an 800mAh cell), so
+there's no need to switch it in and out.
 
 ---
 
@@ -312,6 +361,11 @@ but none of it affects your build unless that board is selected at compile time.
 block. On the ESP32-S3 these are passed explicitly to `Wire.begin(sda, scl)`
 along with the internal pull-up setup. On the UNO R4 the hardware I2C pins are
 used automatically and nothing needs to be specified.
+
+**Battery ADC pin** is set in `battery.h` (ESP32-S3 only). Change the
+`analogReadMilliVolts()` pin argument if you move the divider to a different
+GPIO — just make sure whatever you pick is on ADC1, not ADC2, per the note in
+the battery wiring section above.
 
 If you also change the display panel itself (not just the pins), you would change
 the `GxEPD2_DRIVER_CLASS` define near the top of the selection header to match
@@ -444,9 +498,7 @@ fresh ones, before chasing the code.
 
 ---
 
-## Stage 2: battery power (planned)
-
-Notes to self for when this gets built.
+## Stage 2: battery power (v0.2)
 
 The ESP32-S3 makes this viable because of deep sleep. Awake, the board with WiFi
 active pulls brief bursts up to a few hundred milliamps; asleep it drops to
@@ -455,17 +507,38 @@ by the short awake windows every 30 minutes, so a modest cell lasts a long time.
 
 Current delivery is a non-issue: any hobby LiPo delivers far more than the peak
 bursts need. What matters is **capacity** (mAh), which sets runtime between
-charges. A 3.7V 800mAh cell is a reasonable starting point.
+charges. This build uses a 3.7V 800mAh cell.
 
-The battery connects via the board's battery pads/connector (commonly a JST-PH
-2.0mm plug; check polarity, red +, black -). The ESP32-S3 Super Mini has onboard
-charging so it tops up over USB.
+**What was added:**
 
-One board-specific gotcha to remember: the Super Mini has a **BOOST jumper** for
-charge current, and its documentation notes it should only be connected for cells
-**above 500mAh** (it raises charge current from ~100mA to ~300mA). An 800mAh cell
-is over that threshold, but read the board's note carefully before jumpering, as
-it is about charge safety.
+- A **TP4056 USB-C charging module**, wired between the battery and the board's
+  5V/GND pins. The battery connects to the module's `B+`/`B-` pads, and the
+  module's `OUT+`/`OUT-` feed the board — the same pins USB-C power would use,
+  so the board can't tell the difference between the two power sources.
+- A **voltage divider** (two 100kΩ resistors) tapped off the battery line,
+  feeding a scaled-down reading into a free ADC-capable GPIO (GP4 in this
+  build). This is purely for monitoring — it has no role in actually powering
+  the board. See the [battery wiring](#battery-wiring-esp32-s3-only-v02)
+  section above for the full circuit.
+- The TP4056's onboard protection (DW01A + FS8205A) provides overcharge,
+  over-discharge, and short-circuit protection, and this build's battery cell
+  also has its own built-in protection circuit — belt and suspenders.
+
+**Firmware changes for battery operation:**
+
+- Battery voltage is read early in `runCycle()`, converted to a percentage, and
+  stored on the shared `WeatherData` struct alongside the other readings, so it
+  flows through the same pattern as temperature, humidity, etc.
+- The status bar now shows `TEMP HUM BAT SYNC` in one line, with the battery
+  percentage flagged in a different colour below a low-battery threshold.
+- Charge current on the TP4056 defaults to 1A, which is roughly 1.25C for an
+  800mAh cell — a bit hot for long-term battery health. Swapping the R3
+  resistor on the module down (~2.4kΩ for ~500mA / 0.5C) is a planned future
+  change, not yet done.
+
+The battery does not change anything about the deep sleep cycle itself — the
+30 minute wake interval and the fetch/draw sequence are unchanged from v0.1.
+It just means the board no longer needs to be tethered to power.
 
 The UNO R4 is not part of this stage; it does not deep sleep in this build and
 stays fully powered.
