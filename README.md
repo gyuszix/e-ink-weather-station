@@ -44,9 +44,8 @@ where most of the real lessons live.
         +--------------------------------------------------+
                  (2.9" e-paper, black / white / red)
 ```
+
 <img width="2561" height="1046" alt="IMG_2044" src="https://github.com/user-attachments/assets/19e5b499-c8af-479d-8019-f9ff28301670" />
-
-
 
 On each wake cycle the device:
 
@@ -67,7 +66,7 @@ This project runs on **either** of two boards. The code auto-detects which one
 it is compiled for and adapts. Pick whichever you have.
 
 | | Arduino UNO R4 WiFi | ESP32-S3 Super Mini |
-|---|---|---|
+| --- | --- | --- |
 | Update method | `delay()` in `loop()` | deep sleep, reboots into `setup()` |
 | I2C pull-ups | built in on hardware I2C pins | must be enabled in code |
 | Power use between updates | higher (stays powered) | very low (deep sleep) |
@@ -118,8 +117,6 @@ easiest path and it will be plugged into the wall, the UNO R4 is more forgiving.
 <img width="1934" height="1356" alt="Screenshot 2026-07-30 at 18 20 31" src="https://github.com/user-attachments/assets/961ab921-9b94-4fea-8dfe-c8e11fffe1dc" />
 <img width="979" height="396" alt="Pasted image 20260707141931" src="https://github.com/user-attachments/assets/009787e5-e559-4dfa-bff7-1f1422306b36" />
 
-
-
 ## Pinouts
 
 Reference pinouts for the two boards. Wire according to whichever you are using.
@@ -143,8 +140,9 @@ The control pins (CS, DC, RST, BUSY for the display, and the two I2C pins for th
 sensor) can be moved to other free GPIOs if you prefer, as long as you update the
 code to match. See [Changing the pins](#changing-the-pins) for how.
 
-Note that **MOSI and SCK are fixed hardware SPI pins** on each board and are not
-set in code. You wire them but they are not part of the configurable pins.
+Note that **the display's SPI data/clock lines are fixed hardware SPI pins** on
+each board and are not set in code. You wire them but they are not part of the
+configurable pins.
 
 ### Arduino UNO R4 WiFi
 
@@ -191,7 +189,7 @@ BME280 sensor:
               +-------------------------+
               |        [USB-C]          |
    E-paper <--| GP12 GP11 GP10 GP9 GP8 GP7
-              | SCK  MOSI  CS   DC RST BUSY
+              | SDA  SCL   CS   DC RST BUSY
               |                         |
    BME280  <--| GP5(SDA)  GP6(SCL)      |   <- needs pull-ups in code
               |                         |
@@ -204,11 +202,11 @@ E-paper display:
 | Display | ESP32-S3 pin |
 |---------|-------------|
 | BUSY    | GP7         |
-| RST     | GP8         |
-| DC      | GP9         |
+| RES     | GP8         |
+| D/C     | GP9         |
 | CS      | GP10        |
-| MOSI    | GP11        |
-| SCK     | GP12        |
+| SCL     | GP11        |
+| SDA     | GP12        |
 | GND     | GND         |
 | VCC     | 3.3V        |
 
@@ -249,10 +247,10 @@ Battery(+) ----[R1: 100k]----+----[R2: 100k]---- GND
 Both resistors are equal value, so the ADC pin sees exactly half the battery
 voltage. The firmware multiplies the reading back up by 2 to get the real
 battery voltage, then converts that to an approximate percentage. GP4 was
-chosen because it doesn't conflict with the display SPI pins (GP7-GP12) or the
-BME280 I2C pins (GP5/GP6), and it sits on ADC1, which is unaffected by WiFi
-being active (ADC2 pins share hardware with the radio and can behave
-unreliably while WiFi is on).
+chosen because it doesn't conflict with the display's data/clock pins
+(GP7-GP12) or the BME280 I2C pins (GP5/GP6), and it sits on ADC1, which is
+unaffected by WiFi being active (ADC2 pins share hardware with the radio and
+can behave unreliably while WiFi is on).
 
 The divider draws a small continuous current from the battery whenever it's
 connected (roughly 0.02mA at 100k/100k, negligible against an 800mAh cell), so
@@ -297,7 +295,7 @@ Installed via the Arduino library manager (or `arduino-cli lib install`). The
 versions below are what this build was compiled and tested against.
 
 | Library | Version | Notes |
-|---------|---------|-------|
+| --------- | --------- | ------- |
 | GxEPD2 | 1.6.9 | e-paper driver, by Jean-Marc Zingg |
 | Adafruit GFX Library | 1.12.6 | graphics primitives and fonts |
 | Adafruit BME280 Library | 2.3.0 | sensor driver |
