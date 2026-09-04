@@ -18,6 +18,9 @@ where most of the real lessons live.
 
 ---
 
+<img width="4032" height="3024" alt="IMG_2173" src="https://github.com/user-attachments/assets/7234c0e1-eb15-4186-982e-b9114584e0f9" />
+
+
 ## Version history
 
 - **v0.5** — All planned functionality complete. Code cleaned up and README
