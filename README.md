@@ -1,6 +1,6 @@
 # E-Ink Weather Station
 
-**Version 0.2** — battery powered, deep sleep optimised.
+**Version 0.5** — feature-complete, cleaned up, ready for enclosure and PCB.
 
 A low-power weather station built around a 2.9 inch three-colour e-paper display.
 It pulls current conditions, a daily forecast, and a UV index from free weather
@@ -20,6 +20,11 @@ where most of the real lessons live.
 
 ## Version history
 
+- **v0.5** — All planned functionality complete. Code cleaned up and README
+  brought fully up to date. Cut the number of cables needed by making
+  custom-length cables for each connection instead of generic jumper wires.
+  This is the last breadboard revision — next steps are a 3D-printed case and
+  a custom PCB, both tracked in [Stage 3](#stage-3-permanent-build-planned).
 - **v0.2** — Battery power. Added a LiPo cell, USB-C TP4056 charger module, and
   a voltage divider for battery percentage monitoring. Status bar now reports
   battery level alongside indoor temp/humidity and sync time.
@@ -493,7 +498,10 @@ contact, on both the display data lines and the sensor. E-paper fails silently
 when a data line is loose (the software reports success, nothing draws), which
 makes it look like a code problem. When something works intermittently or draws
 nothing with no error, reseat every wire at both ends, or swap the jumpers for
-fresh ones, before chasing the code.
+fresh ones, before chasing the code. This was enough of a recurring time sink
+that it's part of what motivated the move to custom-length cables in v0.5 — a
+proper crimped connection at the right length is far less prone to this than a
+generic jumper wire pushed into a breadboard.
 
 ---
 
@@ -541,6 +549,23 @@ It just means the board no longer needs to be tethered to power.
 
 The UNO R4 is not part of this stage; it does not deep sleep in this build and
 stays fully powered.
+
+## Stage 2.5: cable cleanup (v0.5)
+
+With the breadboard wiring settled, the generic Dupont jumpers were replaced
+with custom-length cables cut and crimped to fit the actual layout, rather than
+whatever length happened to be in the jumper wire kit. This is purely a
+tidiness/reliability change — no GPIO assignments moved.
+
+The other change is a shared GND and VCC rail: instead of running a separate
+ground wire and a separate power wire from the ESP32-S3 to each of the display,
+the BME280, and the voltage divider individually, a single GND cable and a
+single VCC cable now feed all three, branching at a small shared junction
+close to the board rather than daisy-chaining or running three of each back to
+the microcontroller. This cuts the total wire count noticeably without
+changing any signal wiring, and makes the eventual protoboard/PCB layout
+simpler since there's one ground plane and one power rail to route instead of
+three of each.
 
 ## Stage 3: permanent build (planned)
 
