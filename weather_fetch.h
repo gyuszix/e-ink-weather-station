@@ -25,51 +25,13 @@ String httpGet(const char* host, String path) {
   return response;
 }
 
-void fetchOWM(WeatherData &data) {
-  WiFiClient wifi;
-  HttpClient client = HttpClient(wifi, "api.openweathermap.org", 80);
-
-  String owmPath = "/data/2.5/forecast?lat=";
-  owmPath += LATITUDE;
-  owmPath += "&lon=";
-  owmPath += LONGITUDE;
-  owmPath += "&appid=";
-  owmPath += OWM_API_KEY;
-
-#if defined(ARDUINO_ARCH_ESP32)
-  owmPath += "&units=metric&cnt=16";
-#else
-  owmPath += "&units=metric&cnt=8";
-#endif
-
-  client.get(owmPath);
-  int statusCode = client.responseStatusCode();
-  if (statusCode != 200) {
-    Serial.print("OWM HTTP error: ");
-    Serial.println(statusCode);
-    client.stop();
-    return;
-  }
-
-  Serial.print("OWM response length: ");
-  Serial.println(client.contentLength());
-
-  JsonDocument doc;
-
-  DeserializationError error = deserializeJson(doc, client);
-  if (error) {
-    Serial.print("OWM parse error: ");
-    Serial.println(error.c_str());
-    client.stop();
-    return;
-  }
-
-  parseOWM(doc, data);
-  client.stop();
-}
-
 void fetchWeatherData(WeatherData &data) {
-  // ---- OWM current weather ----
+  // stale values must never survive a failed fetch
+  data.currentValid = false;
+  data.dayValid     = false;
+  data.dayChecked   = false;
+
+  // ---- OWM current weather (temp, icon, wind, clock, timezone) ----
   String currentPath = "/data/2.5/weather?lat=";
   currentPath += LATITUDE;
   currentPath += "&lon=";
@@ -83,19 +45,22 @@ void fetchWeatherData(WeatherData &data) {
     parseCurrent(currentResponse, data);
   }
 
-  // ---- OWM forecast (stream parsed) ----
-  fetchOWM(data);
+  // ---- Open-Meteo daily figures for today (high/low/rain/precip/UV) ----
+  // forecast_days=1 + timezone=auto returns exactly one bucket: the current
+  // local calendar day, 00:00-24:00. Replaces the OWM 3-hour forecast, which
+  // only ever returned *future* slots and so could not see the earlier part
+  // of today.
+  String dailyPath = "/v1/forecast?latitude=";
+  dailyPath += LATITUDE;
+  dailyPath += "&longitude=";
+  dailyPath += LONGITUDE;
+  dailyPath += "&daily=uv_index_max,temperature_2m_max,temperature_2m_min";
+  dailyPath += ",precipitation_sum,precipitation_probability_max";
+  dailyPath += "&timezone=auto&forecast_days=1";
 
-  // ---- Open-Meteo UV ----
-  String uvPath = "/v1/forecast?latitude=";
-  uvPath += LATITUDE;
-  uvPath += "&longitude=";
-  uvPath += LONGITUDE;
-  uvPath += "&daily=uv_index_max&timezone=auto&forecast_days=1";
-
-  String uvResponse = httpGet("api.open-meteo.com", uvPath);
-  if (uvResponse.length() > 0) {
-    parseUV(uvResponse, data);
+  String dailyResponse = httpGet("api.open-meteo.com", dailyPath);
+  if (dailyResponse.length() > 0) {
+    parseDaily(dailyResponse, data);
   }
 
   // ---- BME280 indoor ----

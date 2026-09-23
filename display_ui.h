@@ -39,7 +39,8 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setTextSize(3);
   display.setCursor(4, 48);
-  display.print((int)data.tempCurrent);
+  if (data.currentValid) display.print((int)data.tempCurrent);
+  else                   display.print("--");
   display.setTextSize(1);
 
   display.setTextColor(GxEPD_BLACK);
@@ -61,7 +62,8 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(230, 24);
-  display.print((int)data.tempHigh);
+  if (data.dayValid) display.print((int)data.tempHigh);
+  else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.setCursor(display.getCursorX(), 16);
@@ -76,7 +78,8 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(230, 45);
-  display.print((int)data.tempLow);
+  if (data.dayValid) display.print((int)data.tempLow);
+  else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.setCursor(display.getCursorX(), 37);
@@ -99,7 +102,8 @@ void drawLayout(WeatherData &data) {
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(c1 + 10, valueY);
   display.setTextColor(GxEPD_RED);
-  display.print(data.precipPercent);
+  if (data.dayValid) display.print(data.precipPercent);
+  else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.print("%");
@@ -111,7 +115,8 @@ void drawLayout(WeatherData &data) {
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(c2 + 3, valueY);
   display.setTextColor(GxEPD_RED);
-  display.print((int)data.rainMm, 1);
+  if (data.dayValid) display.print(data.rainMm, 1);
+  else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.print("mm");
@@ -123,7 +128,8 @@ void drawLayout(WeatherData &data) {
   display.setFont(&FreeSansBold12pt7b);
   display.setTextColor(GxEPD_RED);
   display.setCursor(c3 + 10, valueY);
-  display.print(data.uvIndex);
+  if (data.dayValid) display.print(data.uvIndex);
+  else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.print("/");
@@ -168,7 +174,8 @@ void drawLayout(WeatherData &data) {
 
   display.print("Syn:");
   display.setTextColor(GxEPD_RED);
-  display.print(data.syncTime);
+  display.print(data.currentValid ? data.syncTime : "--:--");
+  if (!data.dayValid) display.print("!");
 }
 
 void drawWeatherScreen(WeatherData &data) {
