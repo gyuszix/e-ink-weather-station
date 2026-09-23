@@ -167,7 +167,7 @@ void drawLayout(WeatherData &data) {
   display.print("% ");
 
   display.print("BA:");
-  display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_RED);
+  display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_BLACK);
   display.print(data.batteryPercent);
   display.setTextColor(GxEPD_BLACK);
   display.print("% ");
