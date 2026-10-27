@@ -326,9 +326,8 @@ The Makefile downloads the pinned ArduinoJson single header on first run.
 Fixtures live in `tests/host/fixtures/`.
 
 GitHub Actions runs the unit tests, the live API contract check, and an
-`arduino-cli` compile for both boards on every push, plus weekly so upstream API
-or toolchain changes show up before the panel starts drawing `--`. Core and
-library versions in `.github/workflows/ci.yml` match the table above.
+`arduino-cli` compile for both boards on every push. Core and library versions
+in `.github/workflows/ci.yml` match the table above.
 
 ---
 
