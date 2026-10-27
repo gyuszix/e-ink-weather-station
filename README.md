@@ -55,13 +55,12 @@ where most of the real lessons live.
 On each wake cycle the device:
 
 1. Connects to WiFi.
-2. Fetches current weather from OpenWeatherMap.
-3. Fetches a short forecast (today's high/low, rain, precipitation chance).
-4. Fetches the daily UV index max from Open-Meteo.
-5. Reads indoor temperature and humidity from a BME280 sensor.
-6. Reads battery voltage and converts it to a percentage (ESP32-S3 only).
-7. Draws it all to the e-paper display.
-8. Sleeps for 30 minutes, then does it again.
+2. Fetches current conditions and today's figures (high/low, rain,
+   precipitation chance, UV index max) from Open-Meteo in a single call.
+3. Reads indoor temperature and humidity from a BME280 sensor.
+4. Reads battery voltage and converts it to a percentage (ESP32-S3 only).
+5. Draws it all to the e-paper display.
+6. Sleeps for 30 minutes, then does it again.
 
 ---
 
@@ -275,7 +274,6 @@ structure:
 
 const char* WIFI_SSID     = "your_wifi_name";
 const char* WIFI_PASSWORD = "your_wifi_password";
-const char* OWM_API_KEY   = "your_openweathermap_api_key";
 
 const float LATITUDE  = 00.0000;
 const float LONGITUDE = 00.0000;
@@ -284,11 +282,9 @@ const float LONGITUDE = 00.0000;
 ```
 
 - **WIFI_SSID / WIFI_PASSWORD** are your network login.
-- **OWM_API_KEY** is a free OpenWeatherMap API key. Register for a free account
-  on their site and generate a key. The UV data comes from Open-Meteo, which
-  needs no key at all.
-- **LATITUDE / LONGITUDE** are your location, used for all three API calls. Look
-  them up for wherever you want the weather from.
+- **LATITUDE / LONGITUDE** are your location, used for the weather call. Look
+  them up for wherever you want the weather from. Weather comes from
+  Open-Meteo, which needs no API key (free for non-commercial use).
 
 Keep this file private. Do not commit real credentials to a public repository.
 
@@ -594,8 +590,7 @@ project would not exist without it. The display selection header in this repo is
 adapted from the example that ships with that library.
 <https://github.com/ZinggJM/GxEPD2>
 
-Weather data from **OpenWeatherMap** (current conditions and forecast) and
-**Open-Meteo** (UV index). Indoor readings from a Bosch **BME280** via Adafruit's
+Weather data from **Open-Meteo**. Indoor readings from a Bosch **BME280** via Adafruit's
 libraries.
 
 ---

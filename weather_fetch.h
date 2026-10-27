@@ -31,36 +31,23 @@ void fetchWeatherData(WeatherData &data) {
   data.dayValid     = false;
   data.dayChecked   = false;
 
-  // ---- OWM current weather (temp, icon, wind, clock, timezone) ----
-  String currentPath = "/data/2.5/weather?lat=";
-  currentPath += LATITUDE;
-  currentPath += "&lon=";
-  currentPath += LONGITUDE;
-  currentPath += "&appid=";
-  currentPath += OWM_API_KEY;
-  currentPath += "&units=metric";
+  // ---- Open-Meteo current conditions + today's daily figures ----
+  // One call. forecast_days=1 + timezone=auto returns exactly one daily
+  // bucket, the current local calendar day 00:00-24:00, and makes
+  // current.time local, so both blocks agree on what "today" is.
+  String path = "/v1/forecast?latitude=";
+  path += LATITUDE;
+  path += "&longitude=";
+  path += LONGITUDE;
+  path += "&current=temperature_2m,weather_code,is_day";
+  path += ",wind_speed_10m,wind_direction_10m";
+  path += "&daily=uv_index_max,temperature_2m_max,temperature_2m_min";
+  path += ",precipitation_sum,precipitation_probability_max";
+  path += "&wind_speed_unit=kn&timezone=auto&forecast_days=1";
 
-  String currentResponse = httpGet("api.openweathermap.org", currentPath);
-  if (currentResponse.length() > 0) {
-    parseCurrent(currentResponse, data);
-  }
-
-  // ---- Open-Meteo daily figures for today (high/low/rain/precip/UV) ----
-  // forecast_days=1 + timezone=auto returns exactly one bucket: the current
-  // local calendar day, 00:00-24:00. Replaces the OWM 3-hour forecast, which
-  // only ever returned *future* slots and so could not see the earlier part
-  // of today.
-  String dailyPath = "/v1/forecast?latitude=";
-  dailyPath += LATITUDE;
-  dailyPath += "&longitude=";
-  dailyPath += LONGITUDE;
-  dailyPath += "&daily=uv_index_max,temperature_2m_max,temperature_2m_min";
-  dailyPath += ",precipitation_sum,precipitation_probability_max";
-  dailyPath += "&timezone=auto&forecast_days=1";
-
-  String dailyResponse = httpGet("api.open-meteo.com", dailyPath);
-  if (dailyResponse.length() > 0) {
-    parseDaily(dailyResponse, data);
+  String response = httpGet("api.open-meteo.com", path);
+  if (response.length() > 0) {
+    parseWeather(response, data);
   }
 
   // ---- BME280 indoor ----

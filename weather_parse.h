@@ -16,60 +16,47 @@ const char* degreesToCardinal(int deg) {
   return "N";
 }
 
-// floor division, so the epoch day is still right for negative timestamps
-long floorDiv(long a, long b) {
-  long q = a / b;
-  if ((a % b != 0) && ((a < 0) != (b < 0))) q--;
-  return q;
+// WMO weather code (Open-Meteo) -> the OWM-style icon code the bitmaps are
+// keyed on. Freezing drizzle/rain map to snow, as OWM did.
+void wmoToIcon(int code, bool isDay, char *out, size_t len) {
+  const char* base;
+  if      (code == 0)                                  base = "01";
+  else if (code == 1)                                  base = "02";
+  else if (code == 2)                                  base = "03";
+  else if (code == 3)                                  base = "04";
+  else if (code == 45 || code == 48)                   base = "50";
+  else if (code == 56 || code == 57)                   base = "13";
+  else if (code >= 51 && code <= 55)                   base = "09";
+  else if (code == 66 || code == 67)                   base = "13";
+  else if (code >= 61 && code <= 65)                   base = "10";
+  else if ((code >= 71 && code <= 77) || code == 85 || code == 86) base = "13";
+  else if (code >= 80 && code <= 82)                   base = "09";
+  else if (code >= 95 && code <= 99)                   base = "11";
+  else                                                 base = "01";
+  snprintf(out, len, "%s%c", base, isDay ? 'd' : 'n');
 }
 
-// Howard Hinnant's civil_from_days: days since 1970-01-01 -> calendar date
-void civilFromDays(long z, int &y, int &m, int &d) {
-  z += 719468;
-  long era      = floorDiv(z, 146097L);
-  unsigned doe  = (unsigned)(z - era * 146097L);
-  unsigned yoe  = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-  long yr       = (long)yoe + era * 400;
-  unsigned doy  = doe - (365 * yoe + yoe / 4 - yoe / 100);
-  unsigned mp   = (5 * doy + 2) / 153;
-  d = (int)(doy - (153 * mp + 2) / 5 + 1);
-  m = (int)(mp < 10 ? mp + 3 : mp - 9);
-  y = (int)(yr + (m <= 2));
-}
-
-// local calendar date implied by the OWM current reading, as "YYYY-MM-DD"
-void localDateFromCurrent(WeatherData &data, char *out, size_t len) {
-  long local = data.currentDt + data.timezoneOffset;
-  int y, m, d;
-  civilFromDays(floorDiv(local, 86400L), y, m, d);
-  snprintf(out, len, "%04d-%02d-%02d", y, m, d);
-}
-
-void parseCurrent(String &json, WeatherData &data) {
-  Serial.print("Current response length: ");
-  Serial.println(json.length());
-
-  JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, json);
-  if (error) {
-    Serial.print("Current parse error: ");
-    Serial.println(error.c_str());
+// Open-Meteo current block. timezone=auto makes current.time local, as
+// "YYYY-MM-DDTHH:MM" (start of the 15-minute model interval).
+void parseCurrent(JsonDocument &doc, WeatherData &data) {
+  JsonObject current = doc["current"];
+  const char* time = current["time"] | "";
+  if (strlen(time) < 16) {
+    Serial.println("Current block missing or has no time, rejecting");
     return;
   }
-  Serial.println("Current parse OK");
 
-  data.tempCurrent    = doc["main"]["temp"];
-  data.timezoneOffset = doc["timezone"].as<long>();
-  data.currentDt      = doc["dt"].as<long>();
-  strncpy(data.iconCode, doc["weather"][0]["icon"] | "01d", sizeof(data.iconCode));
-  data.windkt         = doc["wind"]["speed"].as<float>() * 1.944;
-  int windDeg         = doc["wind"]["deg"].as<int>();
+  data.tempCurrent = current["temperature_2m"].as<float>();
+  wmoToIcon(current["weather_code"] | 0, (current["is_day"] | 1) == 1,
+            data.iconCode, sizeof(data.iconCode));
+  data.windkt      = current["wind_speed_10m"].as<float>();   // wind_speed_unit=kn
+  int windDeg      = current["wind_direction_10m"].as<int>();
   strncpy(data.windDir, degreesToCardinal(windDeg), sizeof(data.windDir));
 
-  long dt     = data.currentDt + data.timezoneOffset;
-  int hours   = (int)(((dt % 86400L) + 86400L) % 86400L) / 3600;
-  int minutes = (int)(((dt % 3600L)  + 3600L)  % 3600L)  / 60;
-  snprintf(data.syncTime, sizeof(data.syncTime), "%02d:%02d", hours, minutes);
+  strncpy(data.currentDate, time, 10);
+  data.currentDate[10] = '\0';
+  strncpy(data.syncTime, time + 11, 5);
+  data.syncTime[5] = '\0';
 
   data.currentValid = true;
 
@@ -79,25 +66,12 @@ void parseCurrent(String &json, WeatherData &data) {
   Serial.print("windkt: ");         Serial.println(data.windkt);
   Serial.print("windDir: ");        Serial.println(data.windDir);
   Serial.print("syncTime: ");       Serial.println(data.syncTime);
-  Serial.print("timezoneOffset: "); Serial.println(data.timezoneOffset);
 }
 
 // Open-Meteo daily block. timezone=auto means these are true local
 // midnight-to-midnight figures, covering the hours already past as well as
 // the rest of the day, so no part of the calendar day is missing.
-void parseDaily(String &json, WeatherData &data) {
-  Serial.print("Daily response length: ");
-  Serial.println(json.length());
-
-  JsonDocument doc;
-  DeserializationError error = deserializeJson(doc, json);
-  if (error) {
-    Serial.print("Daily parse error: ");
-    Serial.println(error.c_str());
-    return;
-  }
-  Serial.println("Daily parse OK");
-
+void parseDaily(JsonDocument &doc, WeatherData &data) {
   JsonObject daily = doc["daily"];
   const char* apiDate = daily["time"][0] | "";
   if (apiDate[0] == '\0') {
@@ -106,11 +80,10 @@ void parseDaily(String &json, WeatherData &data) {
   }
 
   // --- date guard ---
-  // Only trust the figures if the day they describe matches the day the clock
-  // says it is. Needs the current call to have supplied dt + timezone.
+  // Only trust the figures if the day they describe matches the day the
+  // current block says it is.
   if (data.currentValid) {
-    char expected[11];
-    localDateFromCurrent(data, expected, sizeof(expected));
+    const char* expected = data.currentDate;
     data.dayChecked = true;
     if (strcmp(apiDate, expected) != 0) {
       Serial.print("Date guard REJECTED: api=");
@@ -122,7 +95,7 @@ void parseDaily(String &json, WeatherData &data) {
     Serial.print("Date guard OK: ");
     Serial.println(apiDate);
   } else {
-    Serial.println("Date guard skipped: no valid clock from current call");
+    Serial.println("Date guard skipped: no valid current block");
   }
 
   data.tempHigh      = daily["temperature_2m_max"][0].as<float>();
@@ -142,6 +115,24 @@ void parseDaily(String &json, WeatherData &data) {
   Serial.print("rainMm: ");        Serial.println(data.rainMm);
   Serial.print("precipPercent: "); Serial.println(data.precipPercent);
   Serial.print("uvIndex: ");       Serial.println(data.uvIndex);
+}
+
+// Single Open-Meteo response carrying both the current and daily blocks.
+void parseWeather(String &json, WeatherData &data) {
+  Serial.print("Weather response length: ");
+  Serial.println(json.length());
+
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, json);
+  if (error) {
+    Serial.print("Weather parse error: ");
+    Serial.println(error.c_str());
+    return;
+  }
+  Serial.println("Weather parse OK");
+
+  parseCurrent(doc, data);
+  parseDaily(doc, data);
 }
 
 #endif
