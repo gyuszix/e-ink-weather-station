@@ -167,10 +167,14 @@ void drawLayout(WeatherData &data) {
   display.print("% ");
 
   display.print("BA:");
-  display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_BLACK);
-  display.print(data.batteryPercent);
-  display.setTextColor(GxEPD_BLACK);
-  display.print("% ");
+  if (data.batteryPercent == BATTERY_UNKNOWN) {
+    display.print("-- ");
+  } else {
+    display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_BLACK);
+    display.print(data.batteryPercent);
+    display.setTextColor(GxEPD_BLACK);
+    display.print("% ");
+  }
 
   display.print("Syn:");
   display.setTextColor(GxEPD_RED);

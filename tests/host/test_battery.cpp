@@ -3,6 +3,9 @@
 #include "../../battery.h"
 #include "test.h"
 
+// Built twice by the Makefile: with ARDUINO_ARCH_ESP32 (ADC path) and
+// without it (boards with no battery sensing).
+
 // The divider halves the cell voltage, so the ADC sees volts * 500 mV.
 static WeatherData readAt(float cellVolts) {
   WeatherData d{};
@@ -36,6 +39,8 @@ TEST(curve_is_monotonic) {
   }
 }
 
+#if defined(ARDUINO_ARCH_ESP32)
+
 TEST(offset_applied_and_capped) {
   CHECK(readAt(4.20).batteryPercent == 100);
   CHECK(readAt(4.00).batteryPercent == 100);   // 86.7 + 15 caps at 100
@@ -62,5 +67,15 @@ TEST(percent_never_decreases_with_voltage) {
     prev = pct;
   }
 }
+
+#else
+
+TEST(no_battery_sensing_reports_unknown) {
+  WeatherData d = readAt(3.70);
+  CHECK(d.batteryPercent == BATTERY_UNKNOWN);
+  CHECK(d.batteryVoltage == 0);
+}
+
+#endif
 
 int main() { return runAllTests(); }

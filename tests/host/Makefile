@@ -12,7 +12,7 @@ CXXFLAGS += -std=c++17 -Wall -Wextra -Werror -Wno-unused-function -Wno-unused-pa
 
 ARDUINOJSON := $(DEPS)/ArduinoJson.h
 HEADERS     := $(wildcard ../../*.h) arduino_stubs.h test.h
-TESTS       := test_weather_parse test_battery test_request
+TESTS       := test_weather_parse test_battery_esp32 test_battery_noadc test_request
 
 .PHONY: test contract clean
 
@@ -27,6 +27,14 @@ contract: $(BUILD)/api_contract
 $(ARDUINOJSON):
 	@mkdir -p $(DEPS)
 	curl -sfL -o $@ https://github.com/bblanchon/ArduinoJson/releases/download/v$(ARDUINOJSON_VERSION)/ArduinoJson-v$(ARDUINOJSON_VERSION).h
+
+$(BUILD)/test_battery_esp32: test_battery.cpp $(HEADERS)
+	@mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) -DARDUINO_ARCH_ESP32 $< -o $@
+
+$(BUILD)/test_battery_noadc: test_battery.cpp $(HEADERS)
+	@mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) $< -o $@
 
 $(BUILD)/%: %.cpp $(HEADERS) $(ARDUINOJSON)
 	@mkdir -p $(BUILD)

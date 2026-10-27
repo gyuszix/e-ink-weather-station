@@ -11,6 +11,9 @@
 
 #define LOW_BATTERY_THRESHOLD 20  // percent
 
+// batteryPercent on boards without battery sensing (anything but the ESP32-S3)
+#define BATTERY_UNKNOWN -1
+
 // The ESP32 ADC is noisy enough that a single sample can be tens of mV out.
 // This runs once per wake, so averaging costs nothing that matters.
 #define BATTERY_ADC_SAMPLES 24
@@ -62,6 +65,11 @@ float voltageToPercent(float voltage) {
 // a small cell sags under that, so a sample taken with the radio active
 // measures the sag rather than the cell's resting voltage.
 void readBattery(WeatherData &data) {
+#if !defined(ARDUINO_ARCH_ESP32)
+  // analogReadMilliVolts() is ESP32-only, and only the S3 build has the divider
+  data.batteryVoltage = 0;
+  data.batteryPercent = BATTERY_UNKNOWN;
+#else
   uint32_t total = 0;
   analogReadMilliVolts(BATTERY_ADC_PIN);   // discard first conversion
   for (int i = 0; i < BATTERY_ADC_SAMPLES; i++) {
@@ -97,6 +105,7 @@ void readBattery(WeatherData &data) {
   Serial.print("%, offset +");
   Serial.print(BATTERY_PERCENT_OFFSET);
   Serial.println(")");
+#endif
 }
 
 #endif
