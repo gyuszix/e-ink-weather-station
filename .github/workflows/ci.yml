@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly: catches Open-Meteo or toolchain drift
+
+jobs:
+  host-tests:
+    name: Host unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: make -C tests/host test
+
+  api-contract:
+    name: Open-Meteo contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: make -C tests/host contract
+
+  firmware:
+    name: Compile (${{ matrix.board }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: ESP32-S3
+            fqbn: esp32:esp32:esp32s3:CDCOnBoot=cdc
+            core: esp32:esp32@3.3.12
+            index: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          - board: UNO R4 WiFi
+            fqbn: arduino:renesas_uno:unor4wifi
+            core: arduino:renesas_uno@1.5.3
+            index: ""
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: e-ink-weather-station   # arduino-cli needs dir name == sketch name
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.arduino15/packages
+            ~/.arduino15/staging
+          key: arduino-${{ matrix.core }}
+
+      - name: Install core
+        run: |
+          arduino-cli core update-index --additional-urls "${{ matrix.index }}"
+          arduino-cli core install "${{ matrix.core }}" --additional-urls "${{ matrix.index }}"
+
+      # versions match the Libraries table in the README
+      - name: Install libraries
+        run: |
+          arduino-cli lib install \
+            "GxEPD2@1.6.9" \
+            "Adafruit GFX Library@1.12.6" \
+            "Adafruit BME280 Library@2.3.0" \
+            "Adafruit Unified Sensor@1.1.15" \
+            "Adafruit BusIO@1.17.4" \
+            "ArduinoJson@7.4.3" \
+            "ArduinoHttpClient@0.6.1"
+
+      - name: Placeholder secrets.h
+        run: cp e-ink-weather-station/secrets.h.example e-ink-weather-station/secrets.h
+
+      - name: Compile
+        run: arduino-cli compile --fqbn "${{ matrix.fqbn }}" --warnings default e-ink-weather-station

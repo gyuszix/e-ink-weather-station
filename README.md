@@ -1,5 +1,7 @@
 # E-Ink Weather Station
 
+[![CI](https://github.com/gyuszix/e-ink-weather-station/actions/workflows/ci.yml/badge.svg)](https://github.com/gyuszix/e-ink-weather-station/actions/workflows/ci.yml)
+
 **Version 0.5** — feature-complete, cleaned up, ready for enclosure and PCB.
 
 A low-power weather station built around a 2.9 inch three-colour e-paper display.
@@ -265,8 +267,8 @@ there's no need to switch it in and out.
 ## secrets.h
 
 The project reads your private configuration from a `secrets.h` file that is
-kept out of version control. Create it next to the main sketch with this
-structure:
+kept out of version control. Copy `secrets.h.example` to `secrets.h` next to the
+main sketch and fill it in. It has this structure:
 
 ```cpp
 #ifndef SECRETS_H
@@ -307,6 +309,26 @@ versions below are what this build was compiled and tested against.
 
 The `WiFi`, `Networking`, `Wire`, and `SPI` libraries come bundled with the
 board core (the ESP32 core, or the Renesas core for the UNO R4).
+
+---
+
+## Tests and CI
+
+The parsing, icon-mapping and battery logic is covered by host-side unit tests
+that run on a normal computer, no board needed:
+
+```bash
+make -C tests/host test       # offline, against recorded API responses
+make -C tests/host contract   # live request to Open-Meteo through the real parser
+```
+
+The Makefile downloads the pinned ArduinoJson single header on first run.
+Fixtures live in `tests/host/fixtures/`.
+
+GitHub Actions runs the unit tests, the live API contract check, and an
+`arduino-cli` compile for both boards on every push, plus weekly so upstream API
+or toolchain changes show up before the panel starts drawing `--`. Core and
+library versions in `.github/workflows/ci.yml` match the table above.
 
 ---
 

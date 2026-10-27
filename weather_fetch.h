@@ -6,6 +6,7 @@
 #include <Adafruit_BME280.h>
 #include "weather_data.h"
 #include "weather_parse.h"
+#include "weather_request.h"
 #include "secrets.h"
 
 Adafruit_BME280 bme;
@@ -32,20 +33,8 @@ void fetchWeatherData(WeatherData &data) {
   data.dayChecked   = false;
 
   // ---- Open-Meteo current conditions + today's daily figures ----
-  // One call. forecast_days=1 + timezone=auto returns exactly one daily
-  // bucket, the current local calendar day 00:00-24:00, and makes
-  // current.time local, so both blocks agree on what "today" is.
-  String path = "/v1/forecast?latitude=";
-  path += LATITUDE;
-  path += "&longitude=";
-  path += LONGITUDE;
-  path += "&current=temperature_2m,weather_code,is_day";
-  path += ",wind_speed_10m,wind_direction_10m";
-  path += "&daily=uv_index_max,temperature_2m_max,temperature_2m_min";
-  path += ",precipitation_sum,precipitation_probability_max";
-  path += "&wind_speed_unit=kn&timezone=auto&forecast_days=1";
-
-  String response = httpGet("api.open-meteo.com", path);
+  String path = weatherRequestPath(LATITUDE, LONGITUDE);
+  String response = httpGet(WEATHER_HOST, path);
   if (response.length() > 0) {
     parseWeather(response, data);
   }

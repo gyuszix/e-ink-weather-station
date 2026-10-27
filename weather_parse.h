@@ -45,6 +45,10 @@ void parseCurrent(JsonDocument &doc, WeatherData &data) {
     Serial.println("Current block missing or has no time, rejecting");
     return;
   }
+  if (!current["temperature_2m"].is<float>()) {
+    Serial.println("Current block has no temperature, rejecting");
+    return;
+  }
 
   data.tempCurrent = current["temperature_2m"].as<float>();
   wmoToIcon(current["weather_code"] | 0, (current["is_day"] | 1) == 1,
