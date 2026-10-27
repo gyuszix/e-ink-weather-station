@@ -37,10 +37,10 @@ struct SerialStub {
   template <class T> void println(T v) { print(v); println(); }
   void println() { if (echo()) fputc('\n', stdout); }
 };
-static SerialStub Serial;
+inline SerialStub Serial;
 
 // ADC: tests set the value the next reads return.
-static uint32_t stubAdcMilliVolts = 0;
+inline uint32_t stubAdcMilliVolts = 0;
 inline uint32_t analogReadMilliVolts(int) { return stubAdcMilliVolts; }
 inline void delayMicroseconds(unsigned) {}
 
