@@ -106,7 +106,7 @@ void parseDaily(JsonDocument &doc, WeatherData &data) {
   data.tempLow       = daily["temperature_2m_min"][0].as<float>();
   data.rainMm        = daily["precipitation_sum"][0].as<float>();
   data.precipPercent = daily["precipitation_probability_max"][0].as<int>();
-  data.uvIndex       = (int)daily["uv_index_max"][0].as<float>();
+  data.uvIndex       = (int)lround(daily["uv_index_max"][0].as<float>());
   data.uvMax         = 11;
   strncpy(data.localDate, apiDate, sizeof(data.localDate) - 1);
   data.localDate[sizeof(data.localDate) - 1] = '\0';

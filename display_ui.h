@@ -39,7 +39,7 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setTextSize(3);
   display.setCursor(4, 48);
-  if (data.currentValid) display.print((int)data.tempCurrent);
+  if (data.currentValid) display.print(lround(data.tempCurrent));
   else                   display.print("--");
   display.setTextSize(1);
 
@@ -62,7 +62,7 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(230, 24);
-  if (data.dayValid) display.print((int)data.tempHigh);
+  if (data.dayValid) display.print(lround(data.tempHigh));
   else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
@@ -78,7 +78,7 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_RED);
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(230, 45);
-  if (data.dayValid) display.print((int)data.tempLow);
+  if (data.dayValid) display.print(lround(data.tempLow));
   else               display.print("--");
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
@@ -142,7 +142,7 @@ void drawLayout(WeatherData &data) {
   display.setFont(&FreeSansBold12pt7b);
   display.setCursor(c4 + 3, valueY);
   display.setTextColor(GxEPD_RED);
-  display.print((int)data.windkt);
+  display.print(lround(data.windkt));
   display.setTextColor(GxEPD_BLACK);
   display.setFont(&FreeSans9pt7b);
   display.print("kt ");
@@ -156,13 +156,13 @@ void drawLayout(WeatherData &data) {
   display.setTextColor(GxEPD_BLACK);
   display.print("IN:");
   display.setTextColor(GxEPD_RED);
-  display.print((int)data.tempIndoor);
+  display.print(lround(data.tempIndoor));
   display.setTextColor(GxEPD_BLACK);
   display.print("C ");
 
   display.print("Hu:");
   display.setTextColor(GxEPD_RED);
-  display.print((int)data.humidityIndoor);
+  display.print(lround(data.humidityIndoor));
   display.setTextColor(GxEPD_BLACK);
   display.print("% ");
 

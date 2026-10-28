@@ -31,7 +31,7 @@ TEST(clear_day_parses_every_field) {
   CHECK_NEAR(d.tempLow, 4.0, 0.001);
   CHECK_NEAR(d.rainMm, 0.0, 0.001);
   CHECK(d.precipPercent == 1);
-  CHECK(d.uvIndex == 3);
+  CHECK(d.uvIndex == 4);          // 3.9 rounds
   CHECK(d.uvMax == 11);
 }
 
@@ -45,7 +45,7 @@ TEST(freezing_rain_at_night) {
   CHECK_STR(d.syncTime, "23:45");
   CHECK_NEAR(d.rainMm, 4.7, 0.001);
   CHECK(d.precipPercent == 92);
-  CHECK(d.uvIndex == 0);          // 0.85 truncates
+  CHECK(d.uvIndex == 1);          // 0.85 rounds
 }
 
 TEST(date_guard_rejects_other_day) {
