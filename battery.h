@@ -9,8 +9,6 @@
 // where R2 is the resistor to GND. Two equal resistors = 2.0.
 #define VOLTAGE_DIVIDER_RATIO 2.0
 
-#define LOW_BATTERY_THRESHOLD 20  // percent
-
 // batteryPercent on boards without battery sensing (anything but the ESP32-S3)
 #define BATTERY_UNKNOWN -1
 

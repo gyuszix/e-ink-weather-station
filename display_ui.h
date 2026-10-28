@@ -170,7 +170,7 @@ void drawLayout(WeatherData &data) {
   if (data.batteryPercent == BATTERY_UNKNOWN) {
     display.print("-- ");
   } else {
-    display.setTextColor(data.batteryPercent <= LOW_BATTERY_THRESHOLD ? GxEPD_RED : GxEPD_BLACK);
+    display.setTextColor(GxEPD_RED);
     display.print(data.batteryPercent);
     display.setTextColor(GxEPD_BLACK);
     display.print("% ");
