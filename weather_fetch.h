@@ -7,7 +7,7 @@
 #include "weather_data.h"
 #include "weather_parse.h"
 #include "weather_request.h"
-#include "secrets.h"
+#include "location.h"
 
 Adafruit_BME280 bme;
 bool bmeReady = false;

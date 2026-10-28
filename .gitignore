@@ -1,3 +1,4 @@
+location.h
 secrets.h
 .DS_Store
 tests/host/build/

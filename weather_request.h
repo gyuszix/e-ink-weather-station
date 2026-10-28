@@ -9,9 +9,9 @@
 // both blocks agree on what "today" is.
 String weatherRequestPath(float latitude, float longitude) {
   String path = "/v1/forecast?latitude=";
-  path += latitude;
+  path += String(latitude, 4);     // String += float would keep only 2 (~1 km)
   path += "&longitude=";
-  path += longitude;
+  path += String(longitude, 4);
   path += "&current=temperature_2m,weather_code,is_day";
   path += ",wind_speed_10m,wind_direction_10m";
   path += "&daily=uv_index_max,temperature_2m_max,temperature_2m_min";

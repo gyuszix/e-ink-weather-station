@@ -65,8 +65,10 @@ jobs:
             "ArduinoJson@7.4.3" \
             "ArduinoHttpClient@0.6.1"
 
-      - name: Placeholder secrets.h
-        run: cp e-ink-weather-station/secrets.h.example e-ink-weather-station/secrets.h
+      - name: Placeholder secrets.h and location.h
+        run: |
+          cp e-ink-weather-station/secrets.h.example e-ink-weather-station/secrets.h
+          cp e-ink-weather-station/location.h.example e-ink-weather-station/location.h
 
       - name: Compile
         run: arduino-cli compile --fqbn "${{ matrix.fqbn }}" --warnings default e-ink-weather-station

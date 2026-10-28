@@ -5,7 +5,7 @@
 TEST(path_contains_every_field_the_parser_reads) {
   String p = weatherRequestPath(42.3398f, -71.0892f);
   const char *needed[] = {
-    "latitude=42.34", "longitude=-71.09",
+    "latitude=42.3398", "longitude=-71.0892",
     "temperature_2m", "weather_code", "is_day", "wind_speed_10m", "wind_direction_10m",
     "uv_index_max", "temperature_2m_max", "temperature_2m_min",
     "precipitation_sum", "precipitation_probability_max",

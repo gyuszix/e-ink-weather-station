@@ -1,9 +1,10 @@
 // Just enough of the Arduino API to compile the sketch's pure-logic headers
 // on a desktop compiler. Behaviour mirrors the Arduino core where the tests
-// depend on it (e.g. String += float keeps two decimals).
+// depend on it (e.g. String += float keeps two decimals, String(f, n) keeps n).
 #ifndef ARDUINO_STUBS_H
 #define ARDUINO_STUBS_H
 
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -16,6 +17,11 @@ class String : public std::string {
   using std::string::operator+=;
   String() = default;
   String(const std::string &s) : std::string(s) {}
+  String(float f, unsigned char decimals) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.*f", decimals, f);
+    assign(buf);
+  }
   String &operator+=(float f) {
     char buf[32];
     snprintf(buf, sizeof(buf), "%.2f", f);

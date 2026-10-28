@@ -264,11 +264,13 @@ there's no need to switch it in and out.
 
 ---
 
-## secrets.h
+## secrets.h and location.h
 
-The project reads your private configuration from a `secrets.h` file that is
-kept out of version control. Copy `secrets.h.example` to `secrets.h` next to the
-main sketch and fill it in. It has this structure:
+The project reads your private configuration from two files that are kept out
+of version control. Copy each `.example` file next to the main sketch, drop the
+`.example` suffix, and fill it in.
+
+`secrets.h` holds your WiFi login:
 
 ```cpp
 #ifndef SECRETS_H
@@ -277,18 +279,30 @@ main sketch and fill it in. It has this structure:
 const char* WIFI_SSID     = "your_wifi_name";
 const char* WIFI_PASSWORD = "your_wifi_password";
 
+#endif
+```
+
+`location.h` holds the point the weather is fetched for. This is the one file
+to edit if you move the station, or if the readings look like they're from
+somewhere else:
+
+```cpp
+#ifndef LOCATION_H
+#define LOCATION_H
+
 const float LATITUDE  = 00.0000;
 const float LONGITUDE = 00.0000;
 
 #endif
 ```
 
-- **WIFI_SSID / WIFI_PASSWORD** are your network login.
-- **LATITUDE / LONGITUDE** are your location, used for the weather call. Look
-  them up for wherever you want the weather from. Weather comes from
-  Open-Meteo, which needs no API key (free for non-commercial use).
+- **LATITUDE / LONGITUDE** are in decimal degrees. North and east are positive,
+  south and west negative (New York is about `40.78, -73.97`). The first 4
+  decimals (~11 m) are sent to Open-Meteo, which needs no API key (free for
+  non-commercial use).
 
-Keep this file private. Do not commit real credentials to a public repository.
+Keep both files private. Do not commit real credentials or your home location
+to a public repository.
 
 ---
 
