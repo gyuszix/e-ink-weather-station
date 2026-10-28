@@ -52,7 +52,7 @@ void drawLayout(WeatherData &data) {
   display.print("o");
 
   display.drawLine(vDiv1, 0, vDiv1, rowDivider, GxEPD_BLACK);
-  display.drawBitmap(101, 2, getBitmap(data.iconCode), 50, 50, GxEPD_BLACK);
+  display.drawBitmap(101, 2, getBitmap(data.iconCode), 50, 50, GxEPD_RED);
   display.drawLine(vDiv2, 0, vDiv2, rowDivider, GxEPD_BLACK);
 
   display.setFont(&FreeSans12pt7b);
